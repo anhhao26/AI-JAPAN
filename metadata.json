@@ -1,0 +1,7 @@
+{
+  "name": "AI tiếng nhật",
+  "description": "bao gồm các chức năng: soạn thảo, gia sư thông minh, luyện giao tiếp và hỏi đáp nhanh.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
