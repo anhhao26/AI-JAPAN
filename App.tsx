@@ -4,10 +4,11 @@ import CompositionAssistant from './components/CompositionAssistant';
 import IntelligentTutor from './components/IntelligentTutor';
 import CommunicationPractice from './components/CommunicationPractice';
 import QuickQA from './components/QuickQA';
-import { WriteIcon, TutorIcon, SpeakIcon, QandAIcon } from './components/icons';
+import ReviewGenerator from './components/ReviewGenerator';
+import { WriteIcon, TutorIcon, SpeakIcon, QandAIcon, ReviewIcon } from './components/icons';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<FeatureTab>('compose');
+  const [activeTab, setActiveTab] = useState<FeatureTab>('review');
 
   const renderContent = () => {
     switch (activeTab) {
@@ -19,12 +20,15 @@ const App: React.FC = () => {
         return <CommunicationPractice />;
       case 'qa':
         return <QuickQA />;
+      case 'review':
+        return <ReviewGenerator />;
       default:
         return <CompositionAssistant />;
     }
   };
 
   const tabs = [
+    { id: 'review', label: 'Ôn tập', icon: <ReviewIcon /> },
     { id: 'compose', label: 'Soạn thảo', icon: <WriteIcon /> },
     { id: 'tutor', label: 'Gia sư AI', icon: <TutorIcon /> },
     { id: 'practice', label: 'Luyện giao tiếp', icon: <SpeakIcon /> },

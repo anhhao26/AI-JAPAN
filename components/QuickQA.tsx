@@ -32,13 +32,24 @@ const QuickQA: React.FC = () => {
         throw new Error("API key is not configured.");
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
+      const responseStream = await ai.models.generateContentStream({
         model: 'gemini-2.5-flash',
         contents: `Bạn là một từ điển tiếng Nhật thông minh. Hãy trả lời câu hỏi của người dùng một cách nhanh chóng, chính xác và đi thẳng vào vấn đề.
         Câu hỏi của người dùng: "${input}"`,
       });
-      const modelMessage: ChatMessageType = { role: 'model', content: response.text };
-      setMessages(prev => [...prev, modelMessage]);
+      
+      let fullResponse = "";
+      // Add a placeholder for the model's message
+      setMessages(prev => [...prev, { role: 'model', content: fullResponse }]);
+
+      for await (const chunk of responseStream) {
+        fullResponse += chunk.text;
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1].content = fullResponse;
+          return newMessages;
+        });
+      }
     } catch (error) {
       console.error(error);
       const errorMessage: ChatMessageType = { role: 'model', content: 'Rất xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại sau.' };
@@ -53,9 +64,8 @@ const QuickQA: React.FC = () => {
       <h2 className="text-2xl font-bold text-white mb-4">Hỏi đáp nhanh</h2>
       <div className="flex-grow overflow-y-auto pr-4 -mr-4 space-y-4">
         {messages.map((msg, index) => (
-          <ChatMessage key={index} message={msg} />
+          <ChatMessage key={index} message={msg} isLoading={isLoading && index === messages.length - 1 && msg.content === ''}/>
         ))}
-        {isLoading && <ChatMessage message={{ role: 'model', content: '' }} isLoading={true} />}
         <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className="mt-6 flex items-center gap-2">

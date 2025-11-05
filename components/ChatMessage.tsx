@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ChatMessage as ChatMessageType, TutorResponse } from '../types';
 import LoadingDots from './LoadingDots';
 
@@ -6,6 +6,64 @@ interface ChatMessageProps {
   message: ChatMessageType;
   isLoading?: boolean;
 }
+
+const Quiz: React.FC<{ quiz: TutorResponse['quiz'] }> = ({ quiz }) => {
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+
+  const handleOptionClick = (option: string) => {
+    if (selectedOption === null) {
+      setSelectedOption(option);
+    }
+  };
+
+  const getButtonClass = (option: string) => {
+    if (selectedOption === null) {
+      return 'border-slate-600 hover:bg-slate-600/50 hover:border-cyan-500';
+    }
+    const isCorrect = option === quiz.correctAnswer;
+    const isSelected = option === selectedOption;
+
+    if (isCorrect) {
+      return 'border-green-500 bg-green-500/20 text-green-300';
+    }
+    if (isSelected && !isCorrect) {
+      return 'border-red-500 bg-red-500/20 text-red-300';
+    }
+    return 'border-slate-600 opacity-60 cursor-not-allowed';
+  };
+  
+  const getIcon = (option: string) => {
+    if (selectedOption === null) return null;
+    const isCorrect = option === quiz.correctAnswer;
+    const isSelected = option === selectedOption;
+
+    if(isCorrect) return <i className="fas fa-check-circle text-green-400"></i>;
+    if(isSelected && !isCorrect) return <i className="fas fa-times-circle text-red-400"></i>;
+    return null;
+  }
+
+  return (
+    <div className="mt-4 pt-3 border-t border-slate-600">
+      <h4 className="font-semibold text-green-400 mb-2">💡 Kiểm tra nhanh:</h4>
+      <p className="whitespace-pre-wrap mb-3 text-slate-300">{quiz.question}</p>
+      <div className="space-y-2">
+        {quiz.options.map((opt, i) => (
+          <button
+            key={i}
+            onClick={() => handleOptionClick(opt)}
+            disabled={selectedOption !== null}
+            className={`w-full text-left p-3 border rounded-lg transition-all duration-300 flex justify-between items-center ${getButtonClass(opt)}`}
+          >
+            <span>{opt}</span>
+            {getIcon(opt)}
+          </button>
+        ))}
+      </div>
+      {selectedOption && <p className="text-xs text-gray-500 mt-3 text-right">Đáp án đúng: {quiz.correctAnswer}</p>}
+    </div>
+  );
+};
+
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, isLoading = false }) => {
   const isUser = message.role === 'user';
@@ -59,19 +117,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isLoading = false })
             </div>
           )}
 
-          <div className="mt-4 pt-3 border-t border-slate-600">
-             <h4 className="font-semibold text-green-400 mb-2">💡 Kiểm tra nhanh:</h4>
-             <p className="whitespace-pre-wrap mb-2 text-slate-300">{data.quiz.question}</p>
-             <ul className="space-y-1 pl-5">
-               {data.quiz.options.map((opt, i) => <li key={i} className="text-slate-400">{opt}</li>)}
-             </ul>
-             <p className="text-xs text-gray-500 mt-3 text-right">Đáp án đúng: {data.quiz.correctAnswer}</p>
-          </div>
+          <Quiz quiz={data.quiz} />
         </div>
       );
     }
     
-    return <p className="whitespace-pre-wrap">{message.content as string}</p>;
+    return <p className="whitespace-pre-wrap">{message.content as string || '...'}</p>;
   };
 
   return (

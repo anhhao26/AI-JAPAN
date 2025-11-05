@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob } from '@google/genai';
 
 // Audio Utility Functions
@@ -58,6 +58,13 @@ const CommunicationPractice: React.FC = () => {
   
   const nextStartTimeRef = useRef<number>(0);
   const audioSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
+  const transcriptionsContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (transcriptionsContainerRef.current) {
+      transcriptionsContainerRef.current.scrollTop = transcriptionsContainerRef.current.scrollHeight;
+    }
+  }, [transcriptions]);
   
   const stopConversation = useCallback(async () => {
     setConnectionState('closing');
@@ -240,16 +247,18 @@ const CommunicationPractice: React.FC = () => {
         Nói chuyện trực tiếp với AI để cải thiện kỹ năng phản xạ và phát âm của bạn.
       </p>
 
-      <div className="flex-grow bg-slate-800/50 border border-slate-700 rounded-lg p-4 overflow-y-auto space-y-3">
+      <div ref={transcriptionsContainerRef} className="flex-grow bg-slate-800/50 border border-slate-700 rounded-lg p-4 overflow-y-auto space-y-3">
         {transcriptions.length === 0 && connectionState !== 'idle' && (
              <p className="text-gray-500 italic text-center h-full flex items-center justify-center">
                 {connectionState === 'connected' ? 'Bắt đầu nói để AI nhận diện...' : 'Đang kết nối...'}
             </p>
         )}
         {transcriptions.map((t, i) => (
-             <div key={i} className={`p-2 rounded-md ${t.speaker === 'user' ? 'text-right' : 'text-left'}`}>
-                <span className={`font-bold capitalize ${t.speaker === 'user' ? 'text-cyan-400' : 'text-purple-400'}`}>{t.speaker === 'user' ? 'Bạn' : 'AI'}: </span>
-                <span className={`text-slate-300 ${t.isFinal ? '' : 'opacity-70'}`}>{t.text}</span>
+             <div key={i} className={`flex flex-col ${t.speaker === 'user' ? 'items-end' : 'items-start'}`}>
+                <div className="max-w-md">
+                    <span className={`font-bold capitalize text-sm mb-1 ${t.speaker === 'user' ? 'text-cyan-400' : 'text-purple-400'}`}>{t.speaker === 'user' ? 'Bạn' : 'AI'}</span>
+                    <p className={`p-2 rounded-lg ${t.speaker === 'user' ? 'bg-blue-600/30 text-right' : 'bg-slate-700/50 text-left'} text-slate-300 ${t.isFinal ? '' : 'opacity-70'}`}>{t.text}</p>
+                </div>
             </div>
         ))}
       </div>

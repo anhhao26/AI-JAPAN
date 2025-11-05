@@ -1,4 +1,4 @@
-export type FeatureTab = 'compose' | 'tutor' | 'practice' | 'qa';
+export type FeatureTab = 'compose' | 'tutor' | 'practice' | 'qa' | 'review';
 
 export interface TutorExample {
   japanese: string;
@@ -24,4 +24,11 @@ export interface TutorResponse {
 export interface ChatMessage {
   role: 'user' | 'model';
   content: string | TutorResponse;
+}
+
+export interface ReviewQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
 }

@@ -22,17 +22,22 @@ const CompositionAssistant: React.FC = () => {
         throw new Error("API key is not configured.");
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
+      const responseStream = await ai.models.generateContentStream({
         model: 'gemini-2.5-pro',
         contents: `Bạn là một trợ lý viết tiếng Nhật chuyên nghiệp. Người dùng muốn viết về một chủ đề hoặc cần trợ giúp với một câu. Hãy giúp họ soạn thảo, sửa lỗi, hoặc đưa ra các gợi ý diễn đạt tốt hơn bằng tiếng Nhật.
         Yêu cầu của người dùng: "${inputText}"`,
       });
-      setResult(response.text);
+      
+      setIsLoading(false); // Start showing stream right away
+
+      for await (const chunk of responseStream) {
+        setResult(prev => prev + chunk.text);
+      }
+
     } catch (e) {
       const error = e as Error;
       console.error(error);
       setError('Đã xảy ra lỗi khi kết nối với AI. Vui lòng thử lại.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -65,10 +70,10 @@ const CompositionAssistant: React.FC = () => {
 
       {error && <p className="text-red-500 mt-2">{error}</p>}
 
-      {result && (
-        <div className="mt-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+      {(result || isLoading) && (
+        <div className="mt-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700 min-h-[100px]">
           <h3 className="font-semibold text-lg mb-2 text-white">Gợi ý từ AI:</h3>
-          <p className="text-gray-300 whitespace-pre-wrap">{result}</p>
+          <p className="text-gray-300 whitespace-pre-wrap">{result}{isLoading && '...'}</p>
         </div>
       )}
     </div>
